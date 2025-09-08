@@ -1,14 +1,15 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// Update the import path below if your Avatar components are located elsewhere
+import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "../components/ui/dropdown-menu";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "../components/ui/button";
 import Link from "next/link";
 
 const UserButton = () => {

@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import { NextResponse } from 'next/server'
-import User from '@/models/user'
-import connectToDatabase from '@/lib/mongodb';
+import User from '../../../../models/user.model'
+import connectToDatabase from '../../../../lib/mongodb';
 
 
 export async function POST(request: Request) {

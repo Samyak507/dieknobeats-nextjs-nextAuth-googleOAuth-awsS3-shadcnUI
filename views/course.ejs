@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Course</title>
+</head>
+<body>
+  <h2>Add New Course</h2>
+  <form method="POST" action="/admin/course" enctype="multipart/form-data">
+    <input type="text" name="courseName" placeholder="Course Name" required />
+    <br />
+    <input type="file" name="thumbnail" accept="image/*" />
+    <br />
+    <input type="number" name="price" placeholder="Price" required />
+    <br />
+    <button type="submit">Save Course</button>
+  </form>
+</body>
+</html>
