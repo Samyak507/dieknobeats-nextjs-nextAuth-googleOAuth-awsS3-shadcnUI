@@ -1,0 +1,86 @@
+collection - courses 
+
+{
+   _id: mongooseId,
+  totalvideos: 12,
+  courseTitle: "Mixing and Mastering course",
+  thumbnail_url : link,
+  price: 1200rs,
+}
+
+collection - courseVideo
+
+{
+  _id: mongooseId,
+ lecture_no: 1,
+ title: "lecture 1 is here now",
+ description: "In this lecture we are learing mixing from scratch",
+ courseId: from course collection,
+ courseName: "Mixing and Mastering course",
+ thumbnail_url: link,
+ video_link: aws s3 unsigned url,
+ video_length: 12min,
+ dateField: date.now,
+},
+
+
+collection - payments
+
+{
+  _id: mongooseID,
+ paymentId: razorPayId,
+ courseID: courseId,
+ status : "Failure | Success",
+ userId: userId,
+ price: price,
+ date : timestamp,
+}
+
+collection - users 
+
+{
+  name: "XYZ",
+  email: "zyx@gmail.com" ,
+  password: "",
+  accountType : "Paid | Trial",
+  purchasedCourse : [{
+    courseId: courseId,
+    courseName: "xyz",
+    purchasedDate: "23rd sept"
+  }]
+}
+
+
+
+// Admin Panel - EJS Template, userId, Password-
+Login - UserName , Password from .env file 
+
+Course Form -
+{
+  Course Name - Form Field - courseA 
+  thumbnail_field - Image Input field 
+  price: Form Field
+}
+
+Upload Video Form - 
+
+{
+   courseName - Select from dropDownField, 
+   videoThumbnail - "Image Input Field",
+   title - Input field,
+   lecture No: 1
+   description: dkddo
+   videoLength: "12min",
+   videoFile - Uploader,
+}
+
+ uploading to s3....
+
+ After success response return
+
+ Save to courseVideo Collection
+
+
+ // To Study
+ SQS/SNS
+ AWS S3

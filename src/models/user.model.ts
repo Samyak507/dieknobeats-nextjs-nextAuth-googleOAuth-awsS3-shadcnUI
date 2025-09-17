@@ -1,16 +1,16 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 
 interface IUser extends Document {
-  name: string;
+  username: string;
   email: string;
   password?: string;
   id: string;
 }
 
 const UserSchema: Schema<IUser> = new mongoose.Schema({
-  name: {
+  username: {
     type: String,
-    required: true,
+    required: [true, "Username is required"],
   },
   email: {
     type: String,
@@ -19,7 +19,7 @@ const UserSchema: Schema<IUser> = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: false,
+    required: true,
   },
 });
 

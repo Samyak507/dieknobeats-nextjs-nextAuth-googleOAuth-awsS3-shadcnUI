@@ -2,16 +2,16 @@
 
 //shadcn ui
 
-import { Button } from "@/components/ui/button";
+import { Button } from "../../components/ui/button";
 import {
   Card,
   CardHeader,
   CardDescription,
   CardContent,
   CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+} from "../../components/ui/card";
+import { Input } from "../../components/ui/input";
+import { Separator } from "../../components/ui/separator";
 
 import Link from "next/link";
 
