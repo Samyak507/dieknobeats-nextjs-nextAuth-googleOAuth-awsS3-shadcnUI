@@ -1,91 +1,94 @@
-// index.js - Updated with session-based admin authentication and 5-minute expiration
+// index.js - Updated with static file support + session-based authentication
 require('dotenv').config();
 const express = require("express");
 const next = require("next");
 const path = require("path");
-const session = require("express-session"); // Import express-session
+const session = require("express-session");
 
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev, dir: "./src" });
 const handle = app.getRequestHandler();
 
-// Define the form data parser once to reuse it
 const urlencodedParser = express.urlencoded({ extended: true });
 
 app.prepare().then(() => {
-  const server = express();
+    const server = express();
 
-  // EJS setup
-  server.set("view engine", "ejs");
-  server.set("views", path.join(__dirname, "views"));
+    // -----------------------------
+    // STATIC FILES (IMPORTANT)
+    // -----------------------------
+    server.use(express.static(path.join(__dirname, "public")));
+    // Now /public/downloads/lofi-pack.zip works at:
+    // http://localhost:3000/downloads/lofi-pack.zip
 
-  // Apply the JSON parser for Next.js API routes
-  server.use(express.json());
+    // EJS setup
+    server.set("view engine", "ejs");
+    server.set("views", path.join(__dirname, "views"));
 
-  // Session middleware setup
-  server.use(session({
-    secret: process.env.SESSION_SECRET || 'a-very-secret-key-for-admin', // It's best to use an environment variable
-    resave: false,
-    saveUninitialized: true,
-    rolling: true, // <-- ADDED: Resets the cookie expiration on every request
-    cookie: { 
-      secure: dev ? false : true, // Use secure cookies in production
-      maxAge: 5 * 60 * 1000 // <-- ADDED: 5 minutes in milliseconds
-    } 
-  }));
+    // JSON parser
+    server.use(express.json());
 
-  // Middleware to check if the admin is logged in
-  const isAdmin = (req, res, next) => {
-    if (req.session.isAdmin) {
-      return next(); // If logged in, proceed to the route
-    }
-    // If not logged in, redirect to the login page
-    res.redirect("/admin/login");
-  };
+    // Session middleware
+    server.use(session({
+        secret: process.env.SESSION_SECRET || 'a-very-secret-key-for-admin',
+        resave: false,
+        saveUninitialized: true,
+        rolling: true,
+        cookie: {
+            secure: dev ? false : true,
+            maxAge: 5 * 60 * 1000 // 5 minutes
+        }
+    }));
 
-  // --- Admin Panel Routes ---
+    // Admin authentication
+    const isAdmin = (req, res, next) => {
+        if (req.session.isAdmin) {
+            return next();
+        }
+        res.redirect("/admin/login");
+    };
 
-  // Page to display the login form
-  server.get("/admin/login", (req, res) => {
-    res.render("login", { error: null });
-  });
+    // -----------------------------
+    // ADMIN ROUTES
+    // -----------------------------
 
-  // Handle the login form submission
-  server.post("/admin/login", urlencodedParser, (req, res) => {
-    const { username, password } = req.body;
+    server.get("/admin/login", (req, res) => {
+        res.render("login", { error: null });
+    });
 
-    // Check for the correct username and password
-    if (username === "dieknobeats@next.com" && password === "123456789") {
-      req.session.isAdmin = true; // Set a session variable to mark as logged in
-      res.redirect("/admin/course");
-    } else {
-      res.render("login", { error: "Invalid username or password." });
-    }
-  });
+    server.post("/admin/login", urlencodedParser, (req, res) => {
+        const { username, password } = req.body;
 
-  // Apply the 'isAdmin' middleware to protect these routes
-  server.get("/admin/course", isAdmin, (req, res) => {
-    res.render("course");
-  });
+        if (username === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+            req.session.isAdmin = true;
+            return res.redirect("/admin/course");
+        }
 
-  server.get("/admin/video", isAdmin, (req, res) => {
-    res.render("video");
-  });
-  
-  // --- Next.js Handler ---
+        res.render("login", { error: "Invalid username or password." });
+    });
 
-  // Let Next.js handle all other requests
-  server.all(/.*/, (req, res) => {
-    return handle(req, res);
-  });
+    // Protected Routes
+    server.get("/admin/course", isAdmin, (req, res) => {
+        res.render("course");
+    });
 
-  const PORT = process.env.PORT || 3000;
-  server.listen(PORT, (err) => {
-    if (err) throw err;
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
-    console.log(`👤 Admin panel: http://localhost:${PORT}/admin/login`);
-  });
-}).catch((ex) => {
-  console.error('Failed to start server:', ex);
-  process.exit(1);
+    server.get("/admin/video", isAdmin, (req, res) => {
+        res.render("video");
+    });
+
+    // -----------------------------
+    // NEXT.JS HANDLER
+    // -----------------------------
+    // NEXT.JS HANDLER
+    server.use((req, res) => {
+        return handle(req, res);
+    });
+
+
+    const PORT = process.env.PORT || 3000;
+    server.listen(PORT, () => {
+        console.log(`🚀 Server running at http://localhost:${PORT}`);
+        console.log(`👤 Admin panel: http://localhost:${PORT}/admin/login`);
+        console.log(`📦 Downloads: http://localhost:${PORT}/downloads/lofi-pack.zip`);
+    });
 });

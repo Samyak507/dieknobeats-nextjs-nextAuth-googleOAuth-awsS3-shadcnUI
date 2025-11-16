@@ -1,30 +1,375 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Upload Video</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover-color: #0056b3;
+            --secondary-color: #6c757d;
+            --background-color: #f4f7f9;
+            --widget-background-color: #ffffff;
+            --text-color: #333;
+            --border-color: #dbe2e8;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --input-focus-glow: rgba(0, 123, 255, 0.25);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--widget-background-color);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px var(--shadow-color);
+        }
+        h1 {
+            color: var(--text-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .main-nav {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .main-nav a {
+            text-decoration: none;
+            color: var(--secondary-color);
+            font-size: 18px;
+            font-weight: 500;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .main-nav a:hover {
+            color: var(--primary-color);
+            background-color: #e9ecef;
+        }
+        .main-nav a.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+        .tab-button {
+            padding: 12px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--secondary-color);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab-button.active, .tab-button:hover {
+            color: var(--primary-color);
+        }
+        .tab-button.active {
+            border-bottom-color: var(--primary-color);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        h2 { margin: 0 0 25px 0; font-weight: 600; color: #444; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #555; }
+        input, select, textarea, .file-input-wrapper {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--input-focus-glow);
+        }
+        .file-input-wrapper { position: relative; overflow: hidden; cursor: pointer; }
+        .file-input-wrapper:hover { border-color: var(--primary-color); }
+        input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .file-input-label, .file-input-placeholder { color: #777; }
+        .file-name { font-weight: 500; margin-left: 10px; }
+        button[type="submit"] {
+            width: 100%; padding: 14px; background-color: var(--primary-color); color: white;
+            border: none; border-radius: 6px; font-size: 16px; font-weight: bold;
+            cursor: pointer; transition: background-color 0.2s ease; margin-top: 10px;
+        }
+        button[type="submit"]:hover { background-color: var(--primary-hover-color); }
+        button:disabled { background-color: #5a9ced; cursor: not-allowed; }
+    </style>
 </head>
 <body>
-  <h2>Upload Video</h2>
-  <form method="POST" action="/admin/video" enctype="multipart/form-data">
-    <select name="courseName" required>
-      <option value="">Select Course</option>
-      <option value="courseA">Course A</option>
-      <option value="courseB">Course B</option>
-    </select>
-    <br />
-    <input type="file" name="videoThumbnail" accept="image/*" />
-    <br />
-    <input type="text" name="title" placeholder="Video Title" required />
-    <br />
-    <input type="number" name="lectureNo" placeholder="Lecture No" required />
-    <br />
-    <textarea name="description" placeholder="Description"></textarea>
-    <br />
-    <input type="text" name="videoLength" placeholder="e.g. 12min" />
-    <br />
-    <input type="file" name="videoFile" accept="video/*" />
-    <br />
-    <button type="submit">Upload Video</button>
-  </form>
+    <div class="dashboard-container">
+        <h1>Admin Dashboard</h1>
+        <nav class="main-nav">
+            <a href="/admin/course">Course Management</a>
+            <a href="/admin/video" class="active">Video Management</a>
+        </nav>
+
+        <div class="tabs">
+            <button class="tab-button" onclick="openTab(event, 'upload-video')">Upload Video</button>
+            <button class="tab-button" onclick="openTab(event, 'edit-video')">Edit Video</button>
+        </div>
+
+        <!-- Upload Video Tab -->
+        <div id="upload-video" class="tab-content">
+             <h2>Upload Video</h2>
+             <form id="uploadForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="courseId">Select Course</label>
+                    <select id="courseId" name="courseId" required>
+                        <option value="" disabled selected>Loading courses...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="title">Video Title</label>
+                    <input type="text" id="title" name="title" placeholder="e.g., Introduction to CSS" required />
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" placeholder="A brief summary of the video content..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="lecture_no">Lecture Number</label>
+                    <input type="number" id="lecture_no" name="lecture_no" placeholder="e.g., 1" required />
+                </div>
+                <div class="form-group">
+                    <label for="video_length">Video Length (in seconds)</label>
+                    <input type="number" id="video_length" name="video_length" placeholder="e.g., 750 for 12min 30s" required />
+                </div>
+                <div class="form-group">
+                    <label for="thumbnail">Video Thumbnail (Image)</label>
+                    <div class="file-input-wrapper">
+                        <span class="file-input-label">Choose an image...</span>
+                        <span class="file-name" id="thumbnail-name"></span>
+                        <input type="file" class="file-input" id="thumbnail" name="thumbnail" accept="image/*" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="file">Video File</label>
+                    <div class="file-input-wrapper">
+                        <span class="file-input-label">Choose a video...</span>
+                        <span class="file-name" id="video-name"></span>
+                        <input type="file" class="file-input" id="file" name="file" accept="video/*" required/>
+                    </div>
+                </div>
+                <button type="submit">Upload Video</button>
+            </form>
+        </div>
+
+        <!-- Edit Video Tab -->
+        <div id="edit-video" class="tab-content">
+            <h2>Edit Existing Video</h2>
+             <form id="editVideoForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="edit-course-select">Select Course</label>
+                    <select id="edit-course-select" required>
+                        <option value="" disabled selected>Loading courses...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-video-select">Select Video</label>
+                    <select id="edit-video-select" name="videoId" required>
+                        <option value="" disabled selected>First, select a course...</option>
+                    </select>
+                </div>
+                <!-- Fields to edit -->
+                <div class="form-group">
+                    <label for="edit-title">Video Title</label>
+                    <input type="text" id="edit-title" name="title" required />
+                </div>
+                <div class="form-group">
+                    <label for="edit-description">Description</label>
+                    <textarea id="edit-description" name="description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-lecture_no">Lecture Number</label>
+                    <input type="number" id="edit-lecture_no" name="lecture_no" required />
+                </div>
+                 <div class="form-group">
+                    <label for="edit-video_length">Video Length (in seconds)</label>
+                    <input type="number" id="edit-video_length" name="video_length" required />
+                </div>
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- Tab Management ---
+        function openTab(evt, tabName) {
+            document.querySelectorAll(".tab-content").forEach(tc => tc.style.display = "none");
+            document.querySelectorAll(".tab-button").forEach(tb => tb.classList.remove("active"));
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.classList.add("active");
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set default active tab
+            document.querySelector('.tab-button').click();
+
+            // --- Custom File Input Display Logic ---
+            document.querySelectorAll('.file-input').forEach(input => {
+                input.addEventListener('change', function(e) {
+                    const fileName = e.target.files[0] ? e.target.files[0].name : '';
+                    const label = this.parentElement.querySelector('.file-input-label');
+                    const nameSpan = this.parentElement.querySelector('.file-name');
+                    if (fileName) {
+                       if(label) label.style.display = 'none';
+                       nameSpan.textContent = fileName;
+                    } else {
+                       if(label) label.style.display = 'inline';
+                       nameSpan.textContent = '';
+                    }
+                });
+            });
+
+            const courseSelectUpload = document.getElementById('courseId');
+            const courseSelectEdit = document.getElementById('edit-course-select');
+            
+            // --- Fetch courses and populate both dropdowns ---
+            axios.get('http://localhost:3000/api/aws/course/getAllCourses')
+                .then(response => {
+                    const courses = response.data;
+                    // Populate upload form dropdown
+                    courseSelectUpload.innerHTML = '<option value="" disabled selected>Choose a course...</option>';
+                    courses.forEach(course => {
+                        courseSelectUpload.add(new Option(course.courseTitle, course._id));
+                    });
+                    // Populate edit form dropdown
+                    courseSelectEdit.innerHTML = '<option value="" disabled selected>Choose a course...</option>';
+                    courses.forEach(course => {
+                        courseSelectEdit.add(new Option(course.courseTitle, course._id));
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching courses:', error);
+                    courseSelectUpload.innerHTML = '<option value="">Could not load</option>';
+                    courseSelectEdit.innerHTML = '<option value="">Could not load</option>';
+                });
+
+            // --- UPLOAD VIDEO LOGIC ---
+            const uploadForm = document.getElementById('uploadForm');
+            uploadForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const submitButton = uploadForm.querySelector('button[type="submit"]');
+                const formData = new FormData(uploadForm);
+                const selectedOption = courseSelectUpload.options[courseSelectUpload.selectedIndex];
+                
+                if (!selectedOption.value) {
+                    alert('Please select a course.');
+                    return;
+                }
+                formData.append('courseName', selectedOption.textContent);
+
+                submitButton.disabled = true;
+                submitButton.textContent = 'Uploading... Please Wait';
+
+                try {
+                    const response = await axios.post('http://localhost:3000/api/aws/video/upload', formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    alert('Video uploaded successfully!');
+                    uploadForm.reset();
+                    document.getElementById('thumbnail-name').textContent = '';
+                    document.getElementById('video-name').textContent = '';
+                } catch (error) {
+                    const msg = error.response?.data?.error || 'Upload failed.';
+                    alert('Error: ' + msg);
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Upload Video';
+                }
+            });
+
+            // --- EDIT VIDEO LOGIC ---
+            const editVideoSelect = document.getElementById('edit-video-select');
+            const editForm = document.getElementById('editVideoForm');
+            let allVideos = [];
+
+            // 1. When a course is selected in the edit tab, fetch its videos
+            courseSelectEdit.addEventListener('change', function() {
+                const courseId = this.value;
+                editVideoSelect.innerHTML = '<option value="">Loading videos...</option>';
+                // NOTE: You need an API endpoint to get videos by course ID
+                axios.get(`http://localhost:3000/api/aws/video/getByCourse/${courseId}`)
+                    .then(response => {
+                        allVideos = response.data;
+                        editVideoSelect.innerHTML = '<option value="" disabled selected>Choose a video to edit...</option>';
+                        allVideos.forEach(video => {
+                           editVideoSelect.add(new Option(video.title, video._id));
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching videos:', error);
+                        editVideoSelect.innerHTML = '<option value="">Could not load videos</option>';
+                    });
+            });
+
+            // 2. When a video is selected, populate the form fields
+            editVideoSelect.addEventListener('change', function() {
+                const videoId = this.value;
+                const selectedVideo = allVideos.find(v => v._id === videoId);
+                if (selectedVideo) {
+                    document.getElementById('edit-title').value = selectedVideo.title;
+                    document.getElementById('edit-description').value = selectedVideo.description;
+                    document.getElementById('edit-lecture_no').value = selectedVideo.lecture_no;
+                    document.getElementById('edit-video_length').value = selectedVideo.video_length;
+                }
+            });
+
+            // 3. Handle edit form submission
+            editForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const videoId = editVideoSelect.value;
+                if (!videoId) {
+                    alert('Please select a video to edit.');
+                    return;
+                }
+                const submitButton = editForm.querySelector('button[type="submit"]');
+                const updatedData = {
+                    title: document.getElementById('edit-title').value,
+                    description: document.getElementById('edit-description').value,
+                    lecture_no: document.getElementById('edit-lecture_no').value,
+                    video_length: document.getElementById('edit-video_length').value,
+                };
+
+                submitButton.disabled = true;
+                submitButton.textContent = 'Saving...';
+
+                try {
+                    // NOTE: You need to create this API endpoint on your server
+                    await axios.put(`http://localhost:3000/api/aws/video/update/${videoId}`, updatedData);
+                    alert('Video updated successfully!');
+                    location.reload();
+                } catch(error) {
+                    const msg = error.response?.data?.message || 'Update failed.';
+                    alert('Error: ' + msg);
+                } finally {
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Save Changes';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
+

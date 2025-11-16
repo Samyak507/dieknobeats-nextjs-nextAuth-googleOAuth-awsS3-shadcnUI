@@ -2,18 +2,126 @@
 <html>
 <head>
   <title>Admin Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    /* ---  CSS Custom Properties (Variables) for Easy Theming --- */
+    :root {
+      --primary-color: #007bff; /* A modern, friendly blue */
+      --primary-hover-color: #0056b3;
+      --background-color: #f4f7f9; /* Light gray background */
+      --form-background-color: #ffffff;
+      --text-color: #333;
+      --border-color: #dbe2e8;
+      --error-color: #d93025;
+      --input-focus-glow: rgba(0, 123, 255, 0.25);
+      --shadow-color: rgba(0, 0, 0, 0.1);
+    }
+
+    /* --- General Body Styles --- */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* --- Login Form Wrapper --- */
+    .login-container {
+        background-color: var(--form-background-color);
+        padding: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px var(--shadow-color);
+        width: 100%;
+        max-width: 360px;
+        box-sizing: border-box;
+    }
+
+    /* --- Heading --- */
+    h2 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 24px;
+      color: var(--text-color);
+      font-weight: 600;
+    }
+    
+    /* --- Form element spacing --- */
+    form {
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* --- Input Fields --- */
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      box-sizing: border-box; /* Ensures padding doesn't affect width */
+      font-size: 16px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    /* --- Input Focus Style --- */
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px var(--input-focus-glow);
+    }
+
+    /* --- Login Button --- */
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+      margin-top: 8px; /* Add some space above the button */
+    }
+
+    button:hover {
+      background-color: var(--primary-hover-color);
+    }
+
+    /* --- Error Message --- */
+    .error-message {
+      color: var(--error-color);
+      text-align: center;
+      margin-top: 16px;
+      font-size: 14px;
+      min-height: 20px; /* Prevents layout shift when error appears */
+    }
+  </style>
 </head>
 <body>
-  <h2>Admin Login</h2>
-  <form method="POST" action="/admin/login">
-    <input type="text" name="username" placeholder="Username" required />
-    <br />
-    <input type="password" name="password" placeholder="Password" required />
-    <br />
-    <button type="submit">Login</button>
-  </form>
-  <% if (error) { %>
-    <p style="color: red;"><%= error %></p>
-  <% } %>
+
+  <div class="login-container">
+    <h2>Admin Login</h2>
+    <form method="POST" action="/admin/login">
+      <input type="text" name="username" placeholder="Username" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+    
+    <div class="error-message">
+        <% if (typeof error !== 'undefined' && error) { %>
+            <p><%= error %></p>
+        <% } %>
+    </div>
+  </div>
+
 </body>
 </html>

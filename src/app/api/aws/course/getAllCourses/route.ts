@@ -1,26 +1,29 @@
-// File: src/app/api/aws/course/getAllCourses/route.ts
-
 import { NextResponse } from 'next/server';
-import { getAllCourses } from '../../services/s3CourseService'; // Adjust path to your function
+import dbConnect from '../../../../../lib/mongodb'; // Adjust path to your dbConnect utility
+import Course from '../../../../../models/course.model'; // Adjust path to your Course model
 
 /**
- * Handles GET requests to /api/aws/course/getAllCourses.
- * This is the function that was missing.
+ * Handles GET requests to fetch all courses from MongoDB.
  */
 export async function GET(request: Request) {
   try {
-    // Call your existing logic to get the courses from S3
-    const courses = await getAllCourses();
+    // 1. Connect to the database
+    await dbConnect();
 
-    // Return a successful response with the course data
+    // 2. Fetch all documents from the "courses" collection
+    const courses = await Course.find({});
+
+    // 3. Return a successful response with the course data
     return NextResponse.json(courses, { status: 200 });
 
   } catch (error) {
     console.error("API route error:", error);
-    // Return an error response if something goes wrong
+    
+    // 4. Return an error response if something goes wrong
     return NextResponse.json(
-      { message: "Failed to retrieve courses." },
+      { message: "Failed to retrieve courses from database." },
       { status: 500 }
     );
   }
 }
+

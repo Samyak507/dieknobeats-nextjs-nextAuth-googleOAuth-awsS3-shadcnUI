@@ -1,18 +1,326 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Add Course</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --primary-hover-color: #0056b3;
+            --secondary-color: #6c757d;
+            --add-color: #28a745;
+            --add-hover-color: #218838;
+            --background-color: #f4f7f9;
+            --widget-background-color: #ffffff;
+            --text-color: #333;
+            --border-color: #dbe2e8;
+            --shadow-color: rgba(0, 0, 0, 0.05);
+            --input-focus-glow: rgba(0, 123, 255, 0.25);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--widget-background-color);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px var(--shadow-color);
+        }
+        h1 {
+            color: var(--text-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .main-nav {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .main-nav a {
+            text-decoration: none;
+            color: var(--secondary-color);
+            font-size: 18px;
+            font-weight: 500;
+            padding: 10px 15px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .main-nav a:hover {
+            color: var(--primary-color);
+            background-color: #e9ecef;
+        }
+        .main-nav a.active {
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 25px;
+        }
+        .tab-button {
+            padding: 12px 20px;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--secondary-color);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+        .tab-button.active, .tab-button:hover {
+            color: var(--primary-color);
+        }
+        .tab-button.active {
+            border-bottom-color: var(--primary-color);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        h2 { margin: 0 0 25px 0; font-weight: 600; color: #444; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #555; }
+        input[type="text"], input[type="number"], select, .file-input-wrapper {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--input-focus-glow);
+        }
+        input:read-only { background-color: #e9ecef; cursor: not-allowed; }
+        .file-input-wrapper { position: relative; cursor: pointer; overflow: hidden; }
+        .file-input-wrapper:hover { border-color: var(--primary-color); }
+        input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .file-input-placeholder { color: #777; }
+        .file-name { font-weight: 500; }
+        .btn { padding: 14px; width: 100%; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background-color 0.2s ease; margin-top: 10px; }
+        .btn-add { background-color: var(--add-color); }
+        .btn-add:hover { background-color: var(--add-hover-color); }
+        .btn-save { background-color: var(--primary-color); }
+        .btn-save:hover { background-color: var(--primary-hover-color); }
+        .btn:disabled { background-color: #6c757d; cursor: wait; }
+    </style>
 </head>
 <body>
-  <h2>Add New Course</h2>
-  <form method="POST" action="/admin/course" enctype="multipart/form-data">
-    <input type="text" name="courseName" placeholder="Course Name" required />
-    <br />
-    <input type="file" name="thumbnail" accept="image/*" />
-    <br />
-    <input type="number" name="price" placeholder="Price" required />
-    <br />
-    <button type="submit">Save Course</button>
-  </form>
+    <div class="dashboard-container">
+        <h1>Admin Dashboard</h1>
+        <nav class="main-nav">
+            <a href="/admin/course" class="active">Course Management</a>
+            <a href="/admin/video">Video Management</a>
+        </nav>
+
+        <div class="tabs">
+            <button class="tab-button" onclick="openTab(event, 'add-course')">Add Course</button>
+            <button class="tab-button" onclick="openTab(event, 'edit-course')">Edit Course</button>
+        </div>
+
+        <!-- Add Course Tab -->
+        <div id="add-course" class="tab-content">
+            <h2>Add New Course</h2>
+            <form id="addCourseForm" action="http://localhost:3000/api/aws/course/upload" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="courseTitle">Course Title</label>
+                    <input type="text" id="courseTitle" name="courseTitle" placeholder="e.g., Advanced JavaScript" required />
+                </div>
+                <div class="form-group">
+                    <label for="price">Price (₹)</label>
+                    <input type="number" id="price" name="price" placeholder="e.g., 4999" required />
+                </div>
+                <div class="form-group">
+                    <label for="totalVideos">Total Videos</label>
+                    <input type="number" id="totalVideos" name="totalVideos" value="0" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="thumbnail">Course Thumbnail</label>
+                    <div class="file-input-wrapper">
+                        <span class="file-input-placeholder">Choose an image...</span>
+                        <span class="file-name"></span>
+                        <input type="file" class="file-input" name="thumbnail" accept="image/*" />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-add">Save Course</button>
+            </form>
+        </div>
+
+        <!-- Edit Course Tab -->
+        <div id="edit-course" class="tab-content">
+            <h2>Edit Existing Course</h2>
+            <form id="editCourseForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="select-course">Select Course</label>
+                    <select id="select-course" name="courseId" required>
+                        <option value="" disabled selected>Loading courses...</option>
+                    </select>
+                </div>
+                 <div class="form-group">
+                    <label for="edit-courseTitle">Course Title</label>
+                    <input type="text" id="edit-courseTitle" name="courseTitle" required />
+                </div>
+                <div class="form-group">
+                    <label for="edit-price">Price (₹)</label>
+                    <input type="number" id="edit-price" name="price" required />
+                </div>
+                <div class="form-group">
+                    <label>Current Thumbnail</label>
+                    <img id="current-thumbnail-preview" src="" alt="Current thumbnail" style="max-width: 150px; display: none; margin-bottom: 10px; border-radius: 6px;">
+               </div>
+               <div class="form-group">
+                   <label for="edit-thumbnail">Change Thumbnail (Optional)</label>
+                   <div class="file-input-wrapper">
+                       <span class="file-input-placeholder">Choose a new image...</span>
+                       <span class="file-name"></span>
+                       <input type="file" id="edit-thumbnail" class="file-input" name="thumbnail" accept="image/*" />
+                   </div>
+               </div>
+                <button type="submit" class="btn btn-save">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- Tab Management ---
+        function openTab(evt, tabName) {
+            document.querySelectorAll(".tab-content").forEach(tc => tc.style.display = "none");
+            document.querySelectorAll(".tab-button").forEach(tb => tb.classList.remove("active"));
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.classList.add("active");
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Set default tab
+            document.querySelector('.tab-button').click();
+
+            // --- Custom File Input Display ---
+            document.querySelectorAll('.file-input').forEach(input => {
+                input.addEventListener('change', function (e) {
+                    const fileName = e.target.files[0] ? e.target.files[0].name : '';
+                    const placeholder = this.parentElement.querySelector('.file-input-placeholder');
+                    const fileNameSpan = this.parentElement.querySelector('.file-name');
+                    if (fileName) {
+                        placeholder.style.display = 'none';
+                        fileNameSpan.textContent = fileName;
+                    } else {
+                        placeholder.style.display = 'inline';
+                        fileNameSpan.textContent = '';
+                    }
+                });
+            });
+
+            // --- ADD COURSE FORM LOGIC ---
+            const addForm = document.getElementById('addCourseForm');
+            addForm.addEventListener('submit', async function (event) {
+                event.preventDefault();
+                const submitButton = addForm.querySelector('button[type="submit"]');
+                submitButton.textContent = 'Saving...';
+                submitButton.disabled = true;
+
+                const formData = new FormData(addForm);
+                try {
+                    await axios.post(addForm.action, formData);
+                    alert('Course saved successfully!');
+                    window.location.href = '/admin/video';
+                } catch (error) {
+                    const errorMessage = error.response?.data?.message || 'An error occurred.';
+                    console.error('Submission error:', error);
+                    alert(`Error: ${errorMessage}`);
+                } finally {
+                    submitButton.textContent = 'Save Course';
+                    submitButton.disabled = false;
+                }
+            });
+
+            // --- EDIT COURSE FORM LOGIC ---
+            const editForm = document.getElementById('editCourseForm');
+            const courseSelect = document.getElementById('select-course');
+            const editTitle = document.getElementById('edit-courseTitle');
+            const editPrice = document.getElementById('edit-price');
+            const thumbnailPreview = document.getElementById('current-thumbnail-preview');
+            let coursesData = [];
+
+            // 1. Fetch courses for dropdown
+            axios.get('http://localhost:3000/api/aws/course/getAllCourses')
+                .then(response => {
+                    coursesData = response.data;
+                    courseSelect.innerHTML = '<option value="" disabled selected>Choose a course to edit...</option>';
+                    coursesData.forEach(course => {
+                        const option = new Option(course.courseTitle, course._id);
+                        courseSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching courses:', error);
+                    courseSelect.innerHTML = '<option value="">Could not load courses</option>';
+                });
+
+            // 2. Populate form when a course is selected
+            courseSelect.addEventListener('change', function() {
+                const selectedCourse = coursesData.find(c => c._id === this.value);
+                if (selectedCourse) {
+                    editTitle.value = selectedCourse.courseTitle;
+                    editPrice.value = selectedCourse.price;
+                    if (selectedCourse.thumbnail) {
+                        thumbnailPreview.src = selectedCourse.thumbnail;
+                        thumbnailPreview.style.display = 'block';
+                    } else {
+                        thumbnailPreview.style.display = 'none';
+                    }
+                }
+            });
+
+            // 3. Handle edit form submission
+            editForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+                const courseId = courseSelect.value;
+                if (!courseId) {
+                    alert('Please select a course to edit.');
+                    return;
+                }
+                const submitButton = editForm.querySelector('button[type="submit"]');
+                submitButton.textContent = 'Saving...';
+                submitButton.disabled = true;
+
+                const formData = new FormData();
+                formData.append('courseTitle', editTitle.value);
+                formData.append('price', editPrice.value);
+                
+                const thumbnailInput = document.getElementById('edit-thumbnail');
+                if (thumbnailInput.files.length > 0) {
+                    formData.append('thumbnail', thumbnailInput.files[0]);
+                }
+                
+                try {
+                    // NOTE: Your server-side endpoint must handle multipart/form-data for PUT requests
+                    await axios.put(`http://localhost:3000/api/aws/course/update/${courseId}`, formData, {
+                        headers: { 'Content-Type': 'multipart/form-data' }
+                    });
+                    alert('Course updated successfully!');
+                    location.reload(); // Refresh to see changes
+                } catch (error) {
+                    const errorMessage = error.response?.data?.message || 'An error occurred.';
+                    alert(`Update failed: ${errorMessage}`);
+                } finally {
+                    submitButton.textContent = 'Save Changes';
+                    submitButton.disabled = false;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
+
