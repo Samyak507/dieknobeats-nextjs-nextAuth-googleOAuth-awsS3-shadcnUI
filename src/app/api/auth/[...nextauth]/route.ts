@@ -9,11 +9,11 @@ import GoogleProvider from "next-auth/providers/google";
 export const authOptions: AuthOptions = {
   session: {
     strategy: "jwt",
-    maxAge: 6 * 60 * 60, // ⏳ Session expires in 6 hours
+    maxAge: 6 * 60 * 60, 
   },
 
   jwt: {
-    maxAge: 6 * 60 * 60, // ⏳ JWT expires in 6 hours
+    maxAge: 6 * 60 * 60, 
   },
 
   providers: [

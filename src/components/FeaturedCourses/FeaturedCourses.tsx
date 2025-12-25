@@ -3,17 +3,20 @@ import React, { useEffect, useState } from "react";
 import CourseCard, { CourseProps } from "./CourseCard";
 import { Check } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
 
 const FeaturedCourses: React.FC = () => {
   const [courses, setCourses] = useState<CourseProps[]>([]);
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
+  const router = useRouter();
 
   const downloads = [
     {
       id: 1,
       title: "Hip-Hop Beat Pack",
-      description: "10 premium hip-hop beats in WAV + MP3",
+      description: "10 premium beats in WAV + MP3",
       file: "/downloads/hiphop-pack.zip",
     },
     {
@@ -29,6 +32,17 @@ const FeaturedCourses: React.FC = () => {
       file: "/downloads/edm-pack.zip",
     },
   ];
+
+  const products = [
+    {
+      id: "vocal-presets-pack",
+      title: "Vocal Presets – Mix Like a Magician",
+      shortDescription: "Premium vocal presets for clean, powerful, and professional mixes.",
+      price: 799,
+      image: "/images/product1.jpg",
+    },
+  ];
+
 
   const handleDownload = (file: string) => {
     if (!session) {
@@ -130,6 +144,68 @@ const FeaturedCourses: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Product Buy section */}
+      <section className="bg-black">
+        <div className="py-20 px-4">
+          <div className="max-w-7xl mx-auto">
+
+            {/* Header */}
+            <div className="text-center mb-16">
+              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+                Our{" "}
+                <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                  Products
+                </span>
+              </h2>
+              <p className="text-gray-400 text-lg md:text-xl max-w-3xl mx-auto">
+                High-quality digital products crafted for professionals
+              </p>
+            </div>
+
+            {/* Product Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 max-w-6xl mx-auto">
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className="relative bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-8 border-2 border-gray-800 hover:scale-105 transition-all duration-300"
+                >
+                  {/* Product Image */}
+                  <img
+                    src={product.image}
+                    alt={product.title}
+                    className="w-full h-48 object-cover rounded-xl mb-6"
+                  />
+
+                  {/* Title */}
+                  <h3 className="text-2xl font-bold text-white mb-3">
+                    {product.title}
+                  </h3>
+
+                  {/* Short Description */}
+                  <p className="text-gray-400 mb-6">
+                    {product.shortDescription}
+                  </p>
+
+                  {/* Price */}
+                  <div className="text-xl font-semibold text-white mb-6">
+                    ₹{product.price}
+                  </div>
+
+                  {/* Buy Button */}
+                  <button
+                    onClick={() => router.push(`/product/${product.id}`)}
+                    className="w-full py-4 px-6 rounded-xl text-lg font-semibold bg-gradient-to-r from-cyan-400 to-purple-600 text-black transition-all duration-300"
+                  >
+                    Buy Now
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
     </>
   );
 };

@@ -1,33 +1,35 @@
-import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const { pathname } = req.nextUrl;
+export async function middleware(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
 
-    //  Allow homepage to be accessed without login
-    if (pathname === "/") return NextResponse.next();
-
-    // ✅ If user not logged in, redirect them to sign-in with callback
-    if (!token) {
-      return NextResponse.redirect(
-        new URL(`/auth/sign-in?callbackUrl=${pathname}`, req.url)
-      );
-    }
-
+  // Public routes
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/auth") ||
+    pathname === "/favicon.ico"
+  ) {
     return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: () => true, // we handle auth manually above
-    },
   }
-);
 
-// ✅ Matcher - protect everything except sign-in, sign-up, api, static files and favicon
+  const token = await getToken({ req });
+
+  if (!token) {
+    return NextResponse.redirect(
+      new URL(`/auth/sign-in?callbackUrl=${pathname}`, req.url)
+    );
+  }
+
+  return NextResponse.next();
+}
+
 export const config = {
   matcher: [
-    "/((?!api|auth/sign-in|auth/sign-up|_next|static|favicon.ico|$).*)",
+    /*
+     * Match all paths except API routes and Next.js files
+     */
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };
